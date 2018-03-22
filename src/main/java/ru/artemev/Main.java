@@ -10,37 +10,45 @@ package ru.artemev;
 //        5. Требуется обеспечить равномерное количество покупок, т.е. количество покупок, сделанных каждым покупателем не должно отличаться
 // больше чем на 1.
 
-import java.util.concurrent.BrokenBarrierException;
-import java.util.concurrent.CyclicBarrier;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
 
 public class Main {
     public static void main(String[] args) {
         final int CUSTOMERS = Integer.parseInt(args[0]);
         CyclicBarrier barrier = new CyclicBarrier(CUSTOMERS);
-        Stock stock = new Stock();
         ExecutorService service = Executors.newFixedThreadPool(CUSTOMERS);
+        List<Future> futures = new ArrayList<>();
         for (int i = 0; i < CUSTOMERS; i++) {
             Customer customer = new Customer(i);
-            service.execute(() -> {
+            Future f = service.submit(() -> {
                 try {
                     do {
                         barrier.await();
-                        synchronized (Customer.class) {
-                            customer.takeProduct((int) (Math.random() * 10) , stock);
-                            System.out.println("Покупатель " + customer.getCustNumber() + "; Всего куплено " +
-                                    customer.getProducts() + "; Осталось на складе " + stock.getProductCount() + "; Взято сейчас со склада: " + customer.getCount());
-                        }
+                        customer.takeProduct((int) (Math.random() * 10));
                         barrier.await();
-                    } while (!stock.stockIsEmpty());
+                    } while (!Stock.getStock().stockIsEmpty());
                 } catch (InterruptedException e) {
                     System.out.println("Ошибка. Прерывание потока.");
                 } catch (BrokenBarrierException e) {
                     System.out.println("Ошибка. Нарушенное состояние барьера(barrier).");
                 }
             });
+            futures.add(f);
+        }
+        for (Future f : futures)
+        {
+            try {
+                f.get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+            }
         }
         service.shutdown();
+        System.out.println("\n ИТОГО:");
+        for (int i = 0; i < CUSTOMERS; i++) {
+            System.out.println("Покупатель " + i + " приобрел " + Stock.getStock().getCustomerInfo().get(i) + " товаров");
+        }
     }
 }
