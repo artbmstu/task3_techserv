@@ -42,7 +42,7 @@ public class Main {
             try {
                 f.get();
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+                System.out.println("Ошибка получения объектов типа 'Future'");
             }
         }
         service.shutdown();
