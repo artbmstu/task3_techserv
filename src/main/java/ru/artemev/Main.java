@@ -15,22 +15,27 @@ import java.util.List;
 import java.util.concurrent.*;
 
 public class Main {
+    static double count = 0;
     public static void main(String[] args) {
         final int CUSTOMERS = Integer.parseInt(args[0]);
         CyclicBarrier barrier = new CyclicBarrier(CUSTOMERS);
         ExecutorService service = Executors.newFixedThreadPool(CUSTOMERS);
         List<Future> futures = new ArrayList<>();
         List<Customer> customers = new ArrayList<>();
+
         for (int i = 0; i < CUSTOMERS; i++) {
             customers.add(new Customer(i));
             int finalI = i;
             Future f = service.submit(() -> {
                 try {
-                    do {
-                        barrier.await();
+                    double iterations = 0;
+                    while (true){
+                        count++;
+                        iterations++;
                         customers.get(finalI).takeProduct((int) (Math.random() * 10));
                         barrier.await();
-                    } while (!Stock.getStock().stockIsEmpty());
+                        if (count / iterations == CUSTOMERS && Stock.getStock().stockIsEmpty()) break;
+                    }
                 } catch (InterruptedException e) {
                     System.out.println("Ошибка. Прерывание потока.");
                 } catch (BrokenBarrierException e) {

@@ -22,16 +22,10 @@ class Customer {
     }
 
     void takeProduct(int count){
-        synchronized (Stock.getStock()) {
-            int prodForOnePurch = Stock.getStock().takeProduct(count);
-            prodTaken += prodForOnePurch;
-            if (!Stock.getStock().stockIsEmpty()) {
-                purchNumber++;
-            }
-            if (!Stock.getStock().stockIsEmpty() && prodForOnePurch != 0 || Stock.getStock().stockIsEmpty() && prodForOnePurch != 0) {
-                System.out.println("Покупатель " + custNumber + "; Всего куплено " + prodTaken +
-                        "; Взято сейчас со склада: " + prodForOnePurch + "; на складе осталось " + Stock.getStock().getProductCount());
-            }
+        int prodForOnePurch = Stock.getStock().takeProduct(count, custNumber);
+        prodTaken += prodForOnePurch;
+        if (!Stock.getStock().stockIsEmpty()) {
+            purchNumber++;
         }
     }
 }
