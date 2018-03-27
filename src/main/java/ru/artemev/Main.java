@@ -20,13 +20,15 @@ public class Main {
         CyclicBarrier barrier = new CyclicBarrier(CUSTOMERS);
         ExecutorService service = Executors.newFixedThreadPool(CUSTOMERS);
         List<Future> futures = new ArrayList<>();
+        List<Customer> customers = new ArrayList<>();
         for (int i = 0; i < CUSTOMERS; i++) {
-            Customer customer = new Customer(i);
+            customers.add(new Customer(i));
+            int finalI = i;
             Future f = service.submit(() -> {
                 try {
                     do {
                         barrier.await();
-                        customer.takeProduct((int) (Math.random() * 10));
+                        customers.get(finalI).takeProduct((int) (Math.random() * 10));
                         barrier.await();
                     } while (!Stock.getStock().stockIsEmpty());
                 } catch (InterruptedException e) {
@@ -48,7 +50,7 @@ public class Main {
         service.shutdown();
         System.out.println("\n ИТОГО:");
         for (int i = 0; i < CUSTOMERS; i++) {
-            System.out.println("Покупатель " + i + " приобрел " + Stock.getStock().getCustomerInfo().get(i) + " товаров");
+            System.out.println("Покупатель " + i + " приобрел " + customers.get(i).getProdTaken() + " товаров за количество походов:" + customers.get(i).getPurchNumber());
         }
     }
 }
