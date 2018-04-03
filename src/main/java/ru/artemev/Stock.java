@@ -1,21 +1,16 @@
 package ru.artemev;
 
-class Stock {
-    private static Stock stock;
+import ru.artemev.interfaces.Stocks;
+
+class Stock implements Stocks {
     private int productCount = 1000;
 
-    int getProductCount() {
+    public int getProductCount() {
         return productCount;
     }
 
-    synchronized static Stock getStock(){
-        if (stock == null){
-            stock = new Stock();
-            return stock;
-        } else return stock;
-    }
-
-    synchronized int takeProduct(int count, int custNumber){
+    @Override
+    public synchronized int takeProduct(int count, int custNumber){
        if ((productCount - count) < 0){
            count = productCount;
            productCount = 0;
@@ -25,12 +20,14 @@ class Stock {
         printText(count, custNumber);
         return count;
     }
-    void printText(int count, int custNumber){
+    @Override
+    public void printText(int count, int custNumber){
         if (!stockIsEmpty() && count != 0 ||stockIsEmpty() && count != 0) {
             System.out.println("Покупатель " + custNumber + "; Взято сейчас со склада: " + count + "; на складе осталось " + getProductCount());
         }
     }
-    boolean stockIsEmpty(){
+    @Override
+    public boolean stockIsEmpty(){
         return productCount == 0;
     }
 }

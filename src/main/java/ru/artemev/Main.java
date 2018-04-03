@@ -10,30 +10,38 @@ package ru.artemev;
 //        5. Требуется обеспечить равномерное количество покупок, т.е. количество покупок, сделанных каждым покупателем не должно отличаться
 // больше чем на 1.
 
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import ru.artemev.interfaces.Customer;
+import ru.artemev.interfaces.Stocks;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 
 public class Main {
-    private static double count = 0;
     public static void main(String[] args) {
-        final int CUSTOMERS = Integer.parseInt(args[0]);
+        int CUSTOMERS = Integer.parseInt(args[0]);
+        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("Context.xml");
+        Stocks stock = applicationContext.getBean(Stocks.class);
         CyclicBarrier barrier = new CyclicBarrier(CUSTOMERS);
         ExecutorService service = Executors.newFixedThreadPool(CUSTOMERS);
         List<Future> futures = new ArrayList<>();
         List<Customer> customers = new ArrayList<>();
         for (int i = 0; i < CUSTOMERS; i++) {
-            customers.add(new Customer(i));
+            Customer customer = (Customer)applicationContext.getBean("customer");
+            customers.add(customer);
             int finalI = i;
             Future f = service.submit(() -> {
                 try {
-                    double iterations = 0;
-                    while (true){
+//                    double iterations = 0;
+                    while (!stock.stockIsEmpty()){
+                        barrier.await();
                         customers.get(finalI).takeProduct((int) (Math.random() * 10));
                         barrier.await();
-                        if (count / iterations  == CUSTOMERS && Stock.getStock().stockIsEmpty()) break;
-                        else {count++;
-                            iterations++;}
+//                        if (count / iterations  == CUSTOMERS && stock.stockIsEmpty()) break;
+//                        else {count++;
+//                            iterations++;}
                     }
                 } catch (InterruptedException e) {
                     System.out.println("Ошибка. Прерывание потока.");
